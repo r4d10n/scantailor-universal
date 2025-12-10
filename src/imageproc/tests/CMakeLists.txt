@@ -18,6 +18,7 @@ SET(
         TestSeedFill.cpp
         TestSEDM.cpp
         TestRastLineFinder.cpp
+        TestSIMDUtils.cpp
         Utils.cpp Utils.h
 )
 SOURCE_GROUP("Sources" FILES ${sources})

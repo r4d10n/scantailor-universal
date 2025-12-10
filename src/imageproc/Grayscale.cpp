@@ -20,6 +20,7 @@
 #include "GrayImage.h"
 #include "BinaryImage.h"
 #include "BitOps.h"
+#include "SIMDUtils.h"
 #include <QImage>
 #include <QColor>
 #include <QtGlobal>
@@ -129,14 +130,12 @@ static QImage rgbToGrayscale(QImage const& src)
         throw std::bad_alloc();
     }
 
-    #pragma omp parallel for
-    for (int y = 0; y < height; ++y) {
-        uint8_t* dst_line = dst.scanLine(y);
-        const QRgb* src_line = reinterpret_cast<const QRgb*>(src.scanLine(y));
-        for (int x = 0; x < width; ++x) {
-            dst_line[x] = static_cast<uint8_t>(qGray(*src_line++));
-        }
-    }
+    // Use SIMD-optimized conversion if available
+    simd::rgbToGraySIMD(
+        dst.bits(), dst.bytesPerLine(),
+        reinterpret_cast<const uint32_t*>(src.bits()), src.bytesPerLine() / 4,
+        width, height
+    );
 
     dst.setDotsPerMeterX(src.dotsPerMeterX());
     dst.setDotsPerMeterY(src.dotsPerMeterY());

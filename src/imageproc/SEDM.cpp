@@ -25,6 +25,7 @@
 #include "Morphology.h"
 #include "SeedFill.h"
 #include "RasterOp.h"
+#include "SIMDUtils.h"
 #include <algorithm>
 #include <string.h>
 #include <math.h>
@@ -471,6 +472,48 @@ SEDM::max3x1(uint32_t const* src, uint32_t* dst) const
     uint32_t const* src_line = &src[0];
     uint32_t* dst_line = &dst[0];
 
+#if SIMD_SSE2_AVAILABLE
+    // SSE2 optimization for 32-bit max operations
+    const int simdWidth = 4;  // 4 uint32_t per 128-bit register
+
+    for (int y = 0; y < height; ++y) {
+        // First column (no left neighbors).
+        dst_line[0] = std::max(src_line[0], src_line[1]);
+
+        // Process middle section with SIMD
+        int x = 1;
+        for (; x + simdWidth <= width - 1; x += simdWidth) {
+            __m128i prev = simd::load128u(src_line + x - 1);
+            __m128i curr = simd::load128u(src_line + x);
+            __m128i next = simd::load128u(src_line + x + 1);
+
+            // SSE2 doesn't have _mm_max_epu32, so we need to implement it
+            // For unsigned comparison: max(a,b) = a XOR ((a XOR b) AND (a < b ? -1 : 0))
+            // But for simplicity with distance values that fit in 31 bits, use signed max
+            __m128i max_pc = simd::max_epi32_sse2(prev, curr);
+            __m128i result = simd::max_epi32_sse2(max_pc, next);
+
+            simd::store128u(dst_line + x, result);
+        }
+
+        // Process remaining pixels
+        for (; x < width - 1; ++x) {
+            uint32_t const prev_val = src_line[x - 1];
+            uint32_t const cur = src_line[x];
+            uint32_t const next_val = src_line[x + 1];
+            dst_line[x] = std::max(prev_val, std::max(cur, next_val));
+        }
+
+        // Last column (no right neighbors).
+        if (width > 1) {
+            dst_line[width - 1] = std::max(src_line[width - 1], src_line[width - 2]);
+        }
+
+        src_line += width;
+        dst_line += width;
+    }
+#else
+    // Scalar fallback
     for (int y = 0; y < height; ++y) {
         // First column (no left neighbors).
         int x = 0;
@@ -489,6 +532,7 @@ SEDM::max3x1(uint32_t const* src, uint32_t* dst) const
         src_line += width;
         dst_line += width;
     }
+#endif
 }
 
 void
@@ -497,6 +541,62 @@ SEDM::max1x3(uint32_t const* src, uint32_t* dst) const
     int const width = m_size.width() + 2;
     int const height = m_size.height() + 2;
 
+#if SIMD_SSE2_AVAILABLE
+    const int simdWidth = 4;  // 4 uint32_t per 128-bit register
+
+    // First row (no top neighbors).
+    uint32_t const* curr_line = &src[0];
+    uint32_t const* next_line = &src[width];
+    uint32_t* dst_line = &dst[0];
+
+    int x = 0;
+    for (; x + simdWidth <= width; x += simdWidth) {
+        __m128i curr = simd::load128u(curr_line + x);
+        __m128i next = simd::load128u(next_line + x);
+        simd::store128u(dst_line + x, simd::max_epi32_sse2(curr, next));
+    }
+    for (; x < width; ++x) {
+        dst_line[x] = std::max(curr_line[x], next_line[x]);
+    }
+
+    // Middle rows
+    for (int y = 1; y < height - 1; ++y) {
+        uint32_t const* prev_line = src + (y - 1) * width;
+        curr_line = src + y * width;
+        next_line = src + (y + 1) * width;
+        dst_line = dst + y * width;
+
+        x = 0;
+        for (; x + simdWidth <= width; x += simdWidth) {
+            __m128i prev = simd::load128u(prev_line + x);
+            __m128i curr = simd::load128u(curr_line + x);
+            __m128i next = simd::load128u(next_line + x);
+            __m128i max_pc = simd::max_epi32_sse2(prev, curr);
+            simd::store128u(dst_line + x, simd::max_epi32_sse2(max_pc, next));
+        }
+        for (; x < width; ++x) {
+            dst_line[x] = std::max(std::max(prev_line[x], curr_line[x]), next_line[x]);
+        }
+    }
+
+    // Last row (no bottom neighbors).
+    if (height > 1) {
+        uint32_t const* prev_line = src + (height - 2) * width;
+        curr_line = src + (height - 1) * width;
+        dst_line = dst + (height - 1) * width;
+
+        x = 0;
+        for (; x + simdWidth <= width; x += simdWidth) {
+            __m128i prev = simd::load128u(prev_line + x);
+            __m128i curr = simd::load128u(curr_line + x);
+            simd::store128u(dst_line + x, simd::max_epi32_sse2(prev, curr));
+        }
+        for (; x < width; ++x) {
+            dst_line[x] = std::max(prev_line[x], curr_line[x]);
+        }
+    }
+#else
+    // Scalar fallback
     // First row (no top neighbors).
     uint32_t const* p_src = &src[0];
     uint32_t* p_dst = &dst[0];
@@ -524,6 +624,7 @@ SEDM::max1x3(uint32_t const* src, uint32_t* dst) const
         ++p_src;
         ++p_dst;
     }
+#endif
 }
 
 void

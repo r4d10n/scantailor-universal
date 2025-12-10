@@ -87,6 +87,26 @@ IF(CMAKE_COMPILER_IS_GNUCC)
         ST_SET_DEFAULT_GCC_FLAGS()
 ENDIF(CMAKE_COMPILER_IS_GNUCC)
 
+# Enable SIMD optimizations for GCC/Clang on x86/x64
+IF(NOT MSVC)
+        INCLUDE(CheckCXXCompilerFlag)
+
+        # Check for SSE2 support (minimum for x64)
+        CHECK_CXX_COMPILER_FLAG("-msse2" COMPILER_SUPPORTS_SSE2)
+        CHECK_CXX_COMPILER_FLAG("-mssse3" COMPILER_SUPPORTS_SSSE3)
+        CHECK_CXX_COMPILER_FLAG("-msse4.1" COMPILER_SUPPORTS_SSE41)
+
+        IF(COMPILER_SUPPORTS_SSE2)
+                SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -msse2")
+        ENDIF()
+        IF(COMPILER_SUPPORTS_SSSE3)
+                SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -mssse3")
+        ENDIF()
+        IF(COMPILER_SUPPORTS_SSE41)
+                SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -msse4.1")
+        ENDIF()
+ENDIF()
+
 # Define DEBUG macro for Debug builds to enable debug output
 IF(CMAKE_BUILD_TYPE STREQUAL "Debug")
         ADD_DEFINITIONS(-DDEBUG)

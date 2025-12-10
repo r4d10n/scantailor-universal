@@ -48,6 +48,7 @@ SET(
         FindPeaksGeneric.h
         ColorMixer.h
         ColorForId.h
+        SIMDUtils.cpp SIMDUtils.h
 )
 
 SOURCE_GROUP(Sources FILES ${sources})
