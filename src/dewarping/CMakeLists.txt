@@ -15,6 +15,7 @@ SET(
         CylindricalSurfaceDewarper.cpp CylindricalSurfaceDewarper.h
         DewarpingPointMapper.cpp DewarpingPointMapper.h
         RasterDewarper.cpp RasterDewarper.h
+        VerticalHalfCorrection.cpp VerticalHalfCorrection.h
 )
 SOURCE_GROUP("Sources" FILES ${sources})
 

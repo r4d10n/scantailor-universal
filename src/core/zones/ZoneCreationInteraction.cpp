@@ -29,8 +29,10 @@
 #include <QKeyEvent>
 #include <QMouseEvent>
 #include <QPainter>
+#include <QPainterPath>
 #include <QPen>
 #include <QLinearGradient>
+#include <cmath>
 #include <Qt>
 #include <QLineF>
 #include <QDebug>
@@ -56,6 +58,10 @@ ZoneCreationInteraction::ZoneCreationInteraction(
     m_nextVertexImagePos_mid2 = m_nextVertexImagePos;
     m_zoneMode = None;
 //end of modified by monday2000
+
+    // Lasso initialization
+    m_lassoDrawing = false;
+    m_lassoPoints.clear();
 
     makeLastFollower(m_dragHandler);
     m_dragHandler.makeFirstFollower(m_dragWatcher);
@@ -117,7 +123,27 @@ ZoneCreationInteraction::onPaint(QPainter& painter, InteractionState const& /*in
     gradient_mid2.setColorAt(0.0, mid_color);
     gradient_mid2.setColorAt(1.0, stop_color);
 
-    if (m_nextVertexImagePos != m_ptrEllipse->center() && (m_zoneMode == Ellipse)) {
+    // Draw lasso mode
+    if (m_zoneMode == Lasso && m_lassoPoints.size() >= 2) {
+        QPainterPath lassoPath;
+        QPointF firstScreenPt = to_screen.map(m_lassoPoints[0]);
+        lassoPath.moveTo(firstScreenPt);
+
+        for (size_t i = 1; i < m_lassoPoints.size(); ++i) {
+            QPointF screenPt = to_screen.map(m_lassoPoints[i]);
+            lassoPath.lineTo(screenPt);
+        }
+        // Draw line back to start to show closure
+        lassoPath.lineTo(firstScreenPt);
+
+        painter.setPen(solid_line_pen);
+        painter.drawPath(lassoPath);
+
+        // Draw vertices
+        for (const QPointF& pt : m_lassoPoints) {
+            m_visualizer.drawVertex(painter, to_screen.map(pt), m_visualizer.highlightBrightColor());
+        }
+    } else if (m_nextVertexImagePos != m_ptrEllipse->center() && (m_zoneMode == Ellipse)) {
 
         QPointF to_screen_center = to_screen.map(m_ptrEllipse->center());
         QPointF to_screen_nextVertexImagePos = to_screen.map(m_ptrEllipse->const_data()[0]);
@@ -250,6 +276,26 @@ ZoneCreationInteraction::onMouseReleaseEvent(QMouseEvent* event, InteractionStat
     QPointF const image_mouse_pos(from_screen.map(screen_mouse_pos));
 
 
+    // Handle Lasso mode completion
+    if (m_zoneMode == Lasso && m_lassoDrawing && m_lassoPoints.size() >= 3) {
+        // Create spline from lasso points
+        EditableSpline::Ptr lassoSpline(new EditableSpline);
+        for (const QPointF& pt : m_lassoPoints) {
+            lassoSpline->appendVertex(pt);
+        }
+        lassoSpline->setBridged(true);
+        lassoSpline->simplify(GlobalStaticSettings::m_zone_editor_min_angle);
+        m_rContext.zones().addSpline(lassoSpline);
+        LocalClipboard::getInstance()->setLastZonePolygon(lassoSpline->toPolygon());
+        m_rContext.zones().commit();
+
+        makePeerPreceeder(*m_rContext.createDefaultInteraction());
+        m_rContext.imageView().update();
+        delete this;
+        event->accept();
+        return;
+    }
+
     if (m_nextVertexImagePos != m_ptrEllipse->center() && (m_zoneMode == Ellipse)) {
 
         updateStatusTip();
@@ -332,7 +378,28 @@ ZoneCreationInteraction::onMouseMoveEvent(QMouseEvent* event, InteractionState& 
     QTransform const to_screen(m_rContext.imageView().imageToWidget());
     QTransform const from_screen(m_rContext.imageView().widgetToImage());
 
-    if (GlobalStaticSettings::checkModifiersMatch(ZoneEllipse, event->modifiers())) {
+    if (GlobalStaticSettings::checkModifiersMatch(ZoneLasso, event->modifiers())) {
+        // Lasso mode - freehand drawing
+        if (m_ptrSpline->segmentsCount() == 0) {
+            m_zoneMode = Lasso;
+            m_nextVertexImagePos = from_screen.map(screen_mouse_pos);
+            if (!m_lassoDrawing) {
+                m_lassoDrawing = true;
+                m_lassoPoints.clear();
+                m_lassoPoints.push_back(m_nextVertexImagePos);
+            } else {
+                // Add point if far enough from last point
+                if (!m_lassoPoints.empty()) {
+                    QPointF lastPt = m_lassoPoints.back();
+                    double dist = std::sqrt(std::pow(m_nextVertexImagePos.x() - lastPt.x(), 2) +
+                                           std::pow(m_nextVertexImagePos.y() - lastPt.y(), 2));
+                    if (dist > 5.0) {  // Minimum distance between points
+                        m_lassoPoints.push_back(m_nextVertexImagePos);
+                    }
+                }
+            }
+        }
+    } else if (GlobalStaticSettings::checkModifiersMatch(ZoneEllipse, event->modifiers())) {
         if (m_ptrSpline->segmentsCount() == 0) {
             m_zoneMode = Ellipse;
             m_nextVertexImagePos = from_screen.map(screen_mouse_pos);
@@ -408,10 +475,11 @@ ZoneCreationInteraction::updateStatusTip()
                   .arg(GlobalStaticSettings::getShortcutText(ZoneCancel));
         }
     } else {
-        tip = tr("Zones need to have at least 3 points. Hold %2 for rectangle, %3 for ellipse. %1 to cancel.")
+        tip = tr("Zones need at least 3 points. Hold %2 for rectangle, %3 for ellipse, %4 for lasso. %1 to cancel.")
               .arg(GlobalStaticSettings::getShortcutText(ZoneCancel),
               GlobalStaticSettings::getShortcutText(ZoneRectangle),
-              GlobalStaticSettings::getShortcutText(ZoneEllipse));
+              GlobalStaticSettings::getShortcutText(ZoneEllipse),
+              GlobalStaticSettings::getShortcutText(ZoneLasso));
     }
 
     m_interaction.setInteractionStatusTip(tip);

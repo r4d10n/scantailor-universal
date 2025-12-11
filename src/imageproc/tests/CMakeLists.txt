@@ -20,6 +20,8 @@ SET(
         TestRastLineFinder.cpp
         TestSIMDUtils.cpp
         TestCUDAUtils.cpp
+        TestBlackOnWhiteDetector.cpp
+        TestPictureShapeDetector.cpp
         Utils.cpp Utils.h
 )
 SOURCE_GROUP("Sources" FILES ${sources})

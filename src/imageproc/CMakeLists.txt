@@ -49,6 +49,9 @@ SET(
         ColorMixer.h
         ColorForId.h
         SIMDUtils.cpp SIMDUtils.h
+        ColorPosterizer.cpp ColorPosterizer.h
+        BlackOnWhiteDetector.cpp BlackOnWhiteDetector.h
+        PictureShapeDetector.cpp PictureShapeDetector.h
 )
 
 # GPU acceleration sources (CUDA)

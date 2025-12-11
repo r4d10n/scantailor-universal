@@ -128,6 +128,14 @@ SET(
         settings/hotkeysmanager.cpp settings/hotkeysmanager.h
         settings/TiffCompressionInfo.cpp settings/TiffCompressionInfo.h
         settings/ini_keys.h
+        settings/ThemeManager.cpp settings/ThemeManager.h
+        settings/ProfileManager.cpp settings/ProfileManager.h
+        settings/UnitsManager.cpp settings/UnitsManager.h
+
+        DeviationProvider.cpp DeviationProvider.h
+        GuidesManager.cpp GuidesManager.h
+        StatusBarManager.cpp StatusBarManager.h
+        OutputStageControl.cpp OutputStageControl.h
 )
 
 IF (ENABLE_OPENJPEG)
