@@ -21,6 +21,7 @@
 #include <cmath>
 #include <cstdint>
 #include <cstring>
+#include <chrono>
 #include "../gpu/CUDAUtils.h"
 
 using namespace imageproc::gpu;
@@ -268,8 +269,10 @@ BOOST_AUTO_TEST_CASE(TestGpuBinarizeOtsu)
     BOOST_CHECK(result);
 
     if (result) {
-        // Threshold should be somewhere between 50 and 200
-        BOOST_CHECK_GT(threshold, 50);
+        // Threshold should be somewhere between 50 and 200 (inclusive of 50)
+        // With a bimodal distribution at exactly 50 and 200, Otsu may return
+        // any threshold from 50 to 199 as they all achieve the same maximum variance
+        BOOST_CHECK_GE(threshold, 50);
         BOOST_CHECK_LT(threshold, 200);
         BOOST_TEST_MESSAGE("Otsu threshold: " << threshold);
 

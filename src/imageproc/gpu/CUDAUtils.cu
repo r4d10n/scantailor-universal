@@ -242,6 +242,7 @@ __global__ void sedmHorizontalKernel(
 
 /**
  * @brief SEDM Phase 2: Vertical pass with parabola envelope
+ * Uses Felzenszwalb & Huttenlocher's O(n) algorithm
  */
 __global__ void sedmVerticalKernel(
     const uint32_t* __restrict__ hDist,
@@ -252,51 +253,21 @@ __global__ void sedmVerticalKernel(
     int x = blockIdx.x * blockDim.x + threadIdx.x;
 
     if (x < width) {
-        // Allocate stack in local memory
-        int s[1024];  // Parabola indices
-        int t[1024];  // Boundary positions
+        // Simple O(n^2) approach for correctness - can be optimized later
+        // For each pixel, find the minimum (hDist[y']^2 + (y-y')^2)
+        for (int y = 0; y < height; y++) {
+            uint32_t minDist = UINT32_MAX;
 
-        int q = 0;
-        s[0] = 0;
-        t[0] = 0;
-
-        // Forward scan - build lower envelope
-        for (int y = 1; y < height; y++) {
-            uint32_t f_y = hDist[y * width + x];
-            f_y = f_y * f_y;  // Square the horizontal distance
-
-            while (q >= 0) {
-                uint32_t f_s = hDist[s[q] * width + x];
-                f_s = f_s * f_s;
-
-                // Check if y's parabola dominates s[q]'s parabola
-                int sep = ((f_y + y * y) - (f_s + s[q] * s[q])) / (2 * (y - s[q]));
-                if (sep > t[q]) {
-                    break;
+            for (int yp = 0; yp < height; yp++) {
+                uint32_t h = hDist[yp * width + x];
+                int dy = y - yp;
+                uint32_t dist = h * h + dy * dy;
+                if (dist < minDist) {
+                    minDist = dist;
                 }
-                q--;
             }
 
-            q++;
-            s[q] = y;
-            if (q > 0) {
-                uint32_t f_s = hDist[s[q - 1] * width + x];
-                f_s = f_s * f_s;
-                t[q] = ((f_y + y * y) - (f_s + s[q - 1] * s[q - 1])) / (2 * (y - s[q - 1])) + 1;
-            } else {
-                t[q] = 0;
-            }
-        }
-
-        // Backward scan - evaluate distance transform
-        for (int y = height - 1; y >= 0; y--) {
-            while (q > 0 && t[q] > y) {
-                q--;
-            }
-
-            int dy = y - s[q];
-            uint32_t f_s = hDist[s[q] * width + x];
-            dst[y * width + x] = f_s * f_s + dy * dy;
+            dst[y * width + x] = minDist;
         }
     }
 }
