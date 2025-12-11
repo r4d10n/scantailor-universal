@@ -300,7 +300,7 @@ BOOST_AUTO_TEST_CASE(test_binary_image_invert)
     bool match = true;
     for (int y = 0; y < height && match; ++y) {
         for (int x = 0; x < width && match; ++x) {
-            if (img1.pixelAt(x, y) != img2_inverted.pixelAt(x, y)) {
+            if (img1.getPixel(x, y) != img2_inverted.getPixel(x, y)) {
                 match = false;
             }
         }
