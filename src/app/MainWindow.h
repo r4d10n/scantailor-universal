@@ -225,6 +225,8 @@ private slots:
 
     void openExportDialog();
 
+    void showCLICommandDialog();
+
     void on_actionAbout_Qt_triggered();
 
     void displayStatusBarPageSize();

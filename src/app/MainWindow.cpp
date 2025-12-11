@@ -65,6 +65,8 @@
 #include "OutOfMemoryDialog.h"
 #include "QtSignalForwarder.h"
 #include "StartBatchProcessingDialog.h"
+#include "CLICommandGenerator.h"
+#include "CLICommandDialog.h"
 #include "filters/fix_orientation/Filter.h"
 #include "filters/fix_orientation/Task.h"
 #include "filters/fix_orientation/CacheDrivenTask.h"
@@ -304,6 +306,10 @@ MainWindow::MainWindow()
         this, SLOT(openExportDialog())
     );
 //end of modified by monday2000
+    connect(
+        actionGenerateCLICommand, SIGNAL(triggered(bool)),
+        this, SLOT(showCLICommandDialog())
+    );
     connect(
         actionNewProject, SIGNAL(triggered(bool)),
         this, SLOT(newProject())
@@ -1975,6 +1981,32 @@ MainWindow::openExportDialog()
 }
 
 void
+MainWindow::showCLICommandDialog()
+{
+    if (!isProjectLoaded()) {
+        QMessageBox::information(this, tr("Generate CLI Command"),
+            tr("Please load a project first."));
+        return;
+    }
+
+    // Get the current page (if any) to use as reference for settings
+    PageInfo pageInfo = m_ptrThumbSequence->selectionLeader();
+    PageId currentPageId;
+    if (!pageInfo.imageId().filePath().isEmpty()) {
+        currentPageId = pageInfo.id();
+    }
+
+    // Generate the CLI command
+    CLICommandGenerator generator(m_ptrStages, m_projectFile, m_outFileNameGen.outDir());
+    QString command = generator.generateCommand(
+        currentPageId.imageId().filePath().isEmpty() ? nullptr : &currentPageId);
+
+    // Show the dialog
+    CLICommandDialog dialog(command, this);
+    dialog.exec();
+}
+
+void
 MainWindow::ExportOutput(exporting::ExportSettings settings)
 {
     if (isBatchProcessingInProgress()) {
@@ -2233,6 +2265,7 @@ MainWindow::updateProjectActions()
     actionFixDpi->setEnabled(loaded);
     actionRelinking->setEnabled(loaded);
     actionExport->setEnabled(loaded);
+    actionGenerateCLICommand->setEnabled(loaded);
     actionGoToPage->setEnabled(loaded);
     actionSelectPages->setEnabled(loaded);
     if (m_ptrStages.get()) {

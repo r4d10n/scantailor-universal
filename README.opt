@@ -204,6 +204,21 @@ Launch normally - optimizations are automatic:
 scantailor-universal
 ```
 
+**Generate CLI Command from GUI Settings:**
+
+To reuse your GUI settings for batch processing via CLI:
+1. Configure your project settings in the GUI as desired
+2. Go to **Tools > Generate CLI Command...**
+3. A dialog will display the equivalent CLI command
+4. Click "Copy to Clipboard" to copy the command for use in scripts
+
+This feature extracts settings from the current page including:
+- Color mode (B&W, grayscale, mixed)
+- Output DPI
+- Despeckle level
+- Dewarping mode
+- Margins and alignment
+
 ### Verifying GPU Acceleration
 
 The application automatically uses GPU when available. To verify:

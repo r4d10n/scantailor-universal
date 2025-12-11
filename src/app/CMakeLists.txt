@@ -45,7 +45,9 @@ SET(
         StartBatchProcessingDialog.cpp StartBatchProcessingDialog.h
         AutoSaveTimer.cpp AutoSaveTimer.h
         OpenWithMenuProvider.cpp OpenWithMenuProvider.h
-        
+        CLICommandGenerator.cpp CLICommandGenerator.h
+        CLICommandDialog.cpp CLICommandDialog.h
+
         settings/fancylineedit.cpp settings/fancylineedit.h
         settings/execmenu.cpp settings/execmenu.h
         ${canberra_sources}
