@@ -127,6 +127,7 @@ CommandLine::parseCli(QStringList const& argv)
     opts << "tiff-force-rgb";
     opts << "tiff-force-grayscale";
     opts << "tiff-force-keep-color-space";
+    opts << "print-stats";
 
     QMap<QString, QString> shortMap;
     shortMap["h"] = "help";
@@ -135,6 +136,7 @@ CommandLine::parseCli(QStringList const& argv)
     shortMap["l"] = "layout";
     shortMap["ld"] = "layout-direction";
     shortMap["o"] = "output-project";
+    shortMap["ps"] = "print-stats";
 
     // skip first argument (scantailor)
     for (int i = 1; i < argv.size(); i++) {
@@ -410,7 +412,8 @@ CommandLine::printHelp()
     std::cout << "\t--window-title=WindowTitle\t\t-- default: project name" << std::endl;
     std::cout << "\t--page-detection-box=<widthxheight>\t\t-- in mm" << std::endl;
     std::cout << "\t\t--page-detection-tolerance=<0.0..1.0>\t-- default: 0.1" << std::endl;
-    std::cout << "\t--disable-check-output\t\t\t-- don't check if page is valid when switching to step 6";
+    std::cout << "\t--disable-check-output\t\t\t-- don't check if page is valid when switching to step 6" << std::endl;
+    std::cout << "\t--print-stats, -ps\t\t\t-- print performance statistics (CPU/SIMD/GPU speedups)" << std::endl;
     std::cout << std::endl;
 }
 

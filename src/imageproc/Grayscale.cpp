@@ -21,6 +21,7 @@
 #include "BinaryImage.h"
 #include "BitOps.h"
 #include "SIMDUtils.h"
+#include "PerformanceStats.h"
 #include <QImage>
 #include <QColor>
 #include <QtGlobal>
@@ -130,12 +131,16 @@ static QImage rgbToGrayscale(QImage const& src)
         throw std::bad_alloc();
     }
 
-    // Use SIMD-optimized conversion if available
-    simd::rgbToGraySIMD(
-        dst.bits(), dst.bytesPerLine(),
-        reinterpret_cast<const uint32_t*>(src.bits()), src.bytesPerLine() / 4,
-        width, height
-    );
+    // Use SIMD-optimized conversion with performance tracking
+    {
+        ScopedTimer timer("grayscale", PerformanceStats::Backend::SIMD,
+                         static_cast<uint64_t>(width) * height);
+        simd::rgbToGraySIMD(
+            dst.bits(), dst.bytesPerLine(),
+            reinterpret_cast<const uint32_t*>(src.bits()), src.bytesPerLine() / 4,
+            width, height
+        );
+    }
 
     dst.setDotsPerMeterX(src.dotsPerMeterX());
     dst.setDotsPerMeterY(src.dotsPerMeterY());
