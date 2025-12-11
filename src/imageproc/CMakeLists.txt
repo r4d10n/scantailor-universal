@@ -51,8 +51,35 @@ SET(
         SIMDUtils.cpp SIMDUtils.h
 )
 
-SOURCE_GROUP(Sources FILES ${sources})
+# GPU acceleration sources (CUDA)
+SET(gpu_sources
+        gpu/CUDAUtils.h
+)
 
-ADD_LIBRARY(imageproc STATIC ${sources})
+# Add CUDA sources if CUDA is enabled, otherwise use stub implementations
+IF(CUDA_ENABLED)
+        SET(gpu_sources ${gpu_sources}
+                gpu/CUDAUtils.cu
+        )
+        # Set CUDA-specific properties
+        SET_SOURCE_FILES_PROPERTIES(gpu/CUDAUtils.cu PROPERTIES LANGUAGE CUDA)
+ELSE()
+        # Use stub implementation when CUDA is not available
+        SET(gpu_sources ${gpu_sources}
+                gpu/CUDAStubs.cpp
+        )
+ENDIF()
+
+SOURCE_GROUP(Sources FILES ${sources})
+SOURCE_GROUP(GPU FILES ${gpu_sources})
+
+ADD_LIBRARY(imageproc STATIC ${sources} ${gpu_sources})
 TARGET_LINK_LIBRARIES(imageproc Qt5::Core Qt5::Gui)
+
+# Link CUDA runtime if available
+IF(CUDA_ENABLED)
+        TARGET_LINK_LIBRARIES(imageproc CUDA::cudart)
+        TARGET_INCLUDE_DIRECTORIES(imageproc PRIVATE ${CUDAToolkit_INCLUDE_DIRS})
+ENDIF()
+
 ADD_SUBDIRECTORY(tests)
