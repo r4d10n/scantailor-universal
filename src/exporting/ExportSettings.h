@@ -42,6 +42,8 @@ struct ExportSettings {
     bool use_sep_suffix_for_pics;
     PageGenTweaks page_gen_tweaks;
     bool export_selected_pages_only;
+    bool also_export_pdf = false;     // Also create merged PDF after TIFF export
+    int pdf_jpeg_quality = 85;        // JPEG quality for PDF (1-100)
 };
 
 }

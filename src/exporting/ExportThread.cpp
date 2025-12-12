@@ -21,12 +21,17 @@
 #include "ImageLoader.h"
 #include "ImageSplitOps.h"
 #include "TiffWriter.h"
+#include "config.h"
+#ifdef ENABLE_MUPDF
+#include "PdfWriter.h"
+#endif
 #include "settings/globalstaticsettings.h"
 #ifdef _OPENMP
 #include <omp.h>
 #endif
 #include <QDir>
 #include <QMetaType>
+#include <algorithm>
 
 
 
@@ -226,6 +231,37 @@ ExportThread::run()
 #ifdef _OPENMP
     if (need_reprocess) {
         omp_set_num_threads(default_thread_num);
+    }
+#endif
+
+    // Create merged PDF if requested
+#ifdef ENABLE_MUPDF
+    if (!isCancelRequested() && m_settings.also_export_pdf && PdfWriter::isAvailable()) {
+        // Collect all exported TIFF images and merge into PDF
+        QVector<QImage> pdfImages;
+
+        // Get list of exported TIFF files and sort them
+        QDir exportDir(m_export_dir);
+        QStringList tiffFiles = exportDir.entryList(QStringList() << "*.tif" << "*.tiff",
+                                                     QDir::Files, QDir::Name);
+
+        for (const QString& tiffFile : tiffFiles) {
+            QString fullPath = m_export_dir + QDir::separator() + tiffFile;
+            QImage img = ImageLoader::load(fullPath);
+            if (!img.isNull()) {
+                pdfImages.append(img);
+            }
+        }
+
+        if (!pdfImages.isEmpty()) {
+            QString pdfPath = m_export_dir + QDir::separator() + "output.pdf";
+            PdfWriter::Settings pdfSettings;
+            pdfSettings.jpegQuality = m_settings.pdf_jpeg_quality;
+
+            if (!PdfWriter::writeImages(pdfPath, pdfImages, pdfSettings)) {
+                emit error(tr("Failed to create PDF file."));
+            }
+        }
     }
 #endif
 

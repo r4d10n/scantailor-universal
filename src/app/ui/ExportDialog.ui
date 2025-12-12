@@ -197,7 +197,17 @@
        <item>
         <widget class="QCheckBox" name="cbMultipageOutput">
          <property name="text">
-          <string>Save images as multipage tiff file</string>
+          <string>Save images as multipage TIFF file</string>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <widget class="QCheckBox" name="cbExportPdf">
+         <property name="toolTip">
+          <string>After TIFF export, merge all pages into a single PDF file</string>
+         </property>
+         <property name="text">
+          <string>Also create merged PDF file</string>
          </property>
         </widget>
        </item>

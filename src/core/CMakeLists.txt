@@ -23,7 +23,8 @@ ADD_SUBDIRECTORY(filters/output)
 IF(ENABLE_MUPDF)
         set(pdf_sources
                 PdfReader.cpp PdfReader.h
-                PdfMetadataLoader.cpp PdfMetadataLoader.h)
+                PdfMetadataLoader.cpp PdfMetadataLoader.h
+                PdfWriter.cpp PdfWriter.h)
         set(MAYBE_MUPDF MuPDF::MuPDF)
 # ELSE()
 #         set(pdf_sources )

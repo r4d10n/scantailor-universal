@@ -65,6 +65,10 @@ ExportDialog::ExportDialog(QWidget* parent, const QString& defaultOutDir)
     ui.UseSepSuffixForPics->setChecked(m_settings.value(_key_export_use_sep_suffix, _key_export_use_sep_suffix_def).toBool());
     ui.KeepOriginalColorIllumForeSubscans->setChecked(m_settings.value(_key_export_keep_original_color, _key_export_keep_original_color_def).toBool());
     ui.cbMultipageOutput->setChecked(m_settings.value(_key_export_to_multipage, _key_export_to_multipage_def).toBool());
+
+    // Also create merged PDF option
+    ui.cbExportPdf->setChecked(m_settings.value(_key_export_also_pdf, false).toBool());
+    connect(ui.cbExportPdf, SIGNAL(toggled(bool)), this, SLOT(onExportPdfToggled(bool)));
 }
 
 ExportDialog::~ExportDialog()
@@ -280,6 +284,8 @@ ExportDialog::startExport(void)
     settings.page_gen_tweaks.setFlag(PageGenTweak::IgnoreOutputProcessingStage, mode.testFlag(ExportMode::ImageWithoutOutputStage));
 #endif
     settings.export_selected_pages_only = ui.cbExportSelected->isChecked();
+    settings.also_export_pdf = ui.cbExportPdf->isChecked();
+    settings.pdf_jpeg_quality = 85;  // Default JPEG quality for PDF
 
     emit ExportOutputSignal(settings);
 }
@@ -394,6 +400,12 @@ void ExportDialog::on_btnResetToDefault_clicked()
     ui.UseSepSuffixForPics->setChecked(_key_export_use_sep_suffix_def);
     ui.KeepOriginalColorIllumForeSubscans->setChecked(_key_export_keep_original_color_def);
     ui.cbMultipageOutput->setChecked(_key_export_to_multipage_def);
+    ui.cbExportPdf->setChecked(false);  // Default to no PDF export
+}
+
+void ExportDialog::onExportPdfToggled(bool checked)
+{
+    m_settings.setValue(_key_export_also_pdf, checked);
 }
 
 }
