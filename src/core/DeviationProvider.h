@@ -23,6 +23,7 @@
 #include <QMap>
 #include <QSet>
 #include <QColor>
+#include <QSizeF>
 #include <QMutex>
 #include <vector>
 #include <memory>

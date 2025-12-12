@@ -82,6 +82,12 @@ public:
      */
     static QImage toIndexed(const QImage& input, const QVector<QColor>& palette, bool dither = true);
 
+    // Find closest color in palette (public for use by ColorSegmenter)
+    static int findClosestColor(const QColor& color, const QVector<QColor>& palette);
+
+    // Color distance (squared Euclidean in RGB space) (public for use by ColorSegmenter)
+    static int colorDistance(const QColor& c1, const QColor& c2);
+
 private:
     // Median cut algorithm implementation
     static QVector<QColor> medianCutPalette(const QImage& image, int numColors);
@@ -97,12 +103,6 @@ private:
 
     // Apply Floyd-Steinberg dithering
     static void applyDithering(QImage& image, const QVector<QColor>& palette, float amount);
-
-    // Find closest color in palette
-    static int findClosestColor(const QColor& color, const QVector<QColor>& palette);
-
-    // Color distance (squared Euclidean in RGB space)
-    static int colorDistance(const QColor& c1, const QColor& c2);
 };
 
 /**

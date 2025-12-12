@@ -23,9 +23,9 @@
 #include <QRect>
 #include <QString>
 
-class BinaryImage;
-
 namespace imageproc {
+
+class BinaryImage;
 
 /**
  * @brief Detection result for black-on-white analysis

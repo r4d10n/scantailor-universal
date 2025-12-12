@@ -19,6 +19,23 @@
 #include "../PictureShapeDetector.h"
 #include <boost/test/unit_test.hpp>
 #include <cmath>
+#include <ostream>
+
+// Stream output operator for PictureShapeType (required by Boost.Test)
+// Must be in the imageproc namespace for ADL to find it
+namespace imageproc {
+inline std::ostream& operator<<(std::ostream& os, PictureShapeType type) {
+    switch (type) {
+        case PictureShapeType::Rectangle: return os << "Rectangle";
+        case PictureShapeType::Square: return os << "Square";
+        case PictureShapeType::Polygon: return os << "Polygon";
+        case PictureShapeType::Ellipse: return os << "Ellipse";
+        case PictureShapeType::Circle: return os << "Circle";
+        case PictureShapeType::Irregular: return os << "Irregular";
+        default: return os << "Unknown";
+    }
+}
+} // namespace imageproc
 
 using namespace imageproc;
 

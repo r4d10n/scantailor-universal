@@ -121,6 +121,7 @@ BlackOnWhiteResult BlackOnWhiteDetector::detect(const QImage& image, const QRect
     return result;
 }
 
+// static
 BlackOnWhiteResult BlackOnWhiteDetector::detect(const BinaryImage& image, const QRect& contentRect)
 {
     BlackOnWhiteResult result;

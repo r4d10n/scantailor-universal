@@ -106,7 +106,7 @@ void StatusBarManager::setupWidgets()
     updateMemoryUsage();
 }
 
-void StatusBarManager::setPageInfo(const PageInfo& info)
+void StatusBarManager::setPageInfo(const StatusPageInfo& info)
 {
     m_pageInfo = info;
     updatePageLabel();

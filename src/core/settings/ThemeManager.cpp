@@ -36,7 +36,7 @@ ThemeManager::ThemeManager()
 {
 }
 
-ThemeColors ThemeManager::lightThemeColors()
+ThemeManager::ThemeColors ThemeManager::lightThemeColors()
 {
     ThemeColors colors;
     colors.background = QColor(255, 255, 255);
@@ -54,7 +54,7 @@ ThemeColors ThemeManager::lightThemeColors()
     return colors;
 }
 
-ThemeColors ThemeManager::darkThemeColors()
+ThemeManager::ThemeColors ThemeManager::darkThemeColors()
 {
     ThemeColors colors;
     colors.background = QColor(30, 30, 30);

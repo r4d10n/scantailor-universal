@@ -23,6 +23,7 @@
 #include <QString>
 #include <QColor>
 #include <QSize>
+#include <QMap>
 #include <memory>
 
 class QSettings;

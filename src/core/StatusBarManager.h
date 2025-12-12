@@ -31,9 +31,9 @@ class QLabel;
 class QProgressBar;
 
 /**
- * @brief Information about the current page
+ * @brief Information about the current page for status bar display
  */
-struct PageInfo {
+struct StatusPageInfo {
     QString filename;
     int pageNumber;
     int totalPages;
@@ -43,7 +43,7 @@ struct PageInfo {
     int colorDepth;
     QString colorMode;  // "Color", "Grayscale", "B&W"
 
-    PageInfo()
+    StatusPageInfo()
         : pageNumber(0)
         , totalPages(0)
         , dpi(0)
@@ -129,7 +129,7 @@ public:
     ~StatusBarManager();
 
     // Update individual components
-    void setPageInfo(const PageInfo& info);
+    void setPageInfo(const StatusPageInfo& info);
     void setCursorInfo(const CursorInfo& info);
     void setZoomInfo(const ZoomInfo& info);
     void setSelectionInfo(const SelectionInfo& info);
@@ -187,7 +187,7 @@ private:
     QLabel* m_memoryLabel;
     QProgressBar* m_progressBar;
 
-    PageInfo m_pageInfo;
+    StatusPageInfo m_pageInfo;
     CursorInfo m_cursorInfo;
     ZoomInfo m_zoomInfo;
     SelectionInfo m_selectionInfo;

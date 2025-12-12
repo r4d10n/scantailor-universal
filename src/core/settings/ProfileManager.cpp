@@ -301,8 +301,9 @@ ProcessingProfile* ProfileManager::profile(const QString& name)
 
 const ProcessingProfile* ProfileManager::profile(const QString& name) const
 {
-    if (m_profiles.contains(name)) {
-        return &m_profiles[name];
+    auto it = m_profiles.find(name);
+    if (it != m_profiles.end()) {
+        return &it.value();
     }
     return nullptr;
 }

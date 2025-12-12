@@ -21,8 +21,17 @@
 #include <QImage>
 #include <cmath>
 #include <algorithm>
+#include <functional>
 
 namespace dewarping {
+
+namespace {
+// Local clamp helper for C++11/14 compatibility
+template<typename T>
+constexpr const T& clamp_val(const T& v, const T& lo, const T& hi) {
+    return (v < lo) ? lo : (v > hi) ? hi : v;
+}
+}
 
 VerticalHalfCorrection::VerticalHalfCorrection()
     : m_topStretch(1.0)
@@ -82,7 +91,7 @@ VerticalHalfAnalysis VerticalHalfCorrection::analyze(const Curve& topCurve, cons
 
             if (len1 > 0 && len2 > 0) {
                 double dot = (v1.x() * v2.x() + v1.y() * v2.y()) / (len1 * len2);
-                double angle = std::acos(std::clamp(dot, -1.0, 1.0));
+                double angle = std::acos(clamp_val(dot, -1.0, 1.0));
                 totalCurvature += angle;
             }
         }
@@ -281,8 +290,8 @@ Curve VerticalHalfCorrection::generateMiddleCurve(const Curve& topCurve, const C
 
 void VerticalHalfCorrection::setVerticalStretch(double topStretch, double bottomStretch)
 {
-    m_topStretch = std::clamp(topStretch, 0.5, 2.0);
-    m_bottomStretch = std::clamp(bottomStretch, 0.5, 2.0);
+    m_topStretch = clamp_val(topStretch, 0.5, 2.0);
+    m_bottomStretch = clamp_val(bottomStretch, 0.5, 2.0);
 }
 
 bool VerticalHalfCorrection::isEnabled() const
