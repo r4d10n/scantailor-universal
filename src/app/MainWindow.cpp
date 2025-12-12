@@ -2228,6 +2228,9 @@ MainWindow::showAboutDialog()
     QResource license(":/GPLv3.html");
     ui.licenseViewer->setHtml(QString::fromUtf8((char const*)license.data(), license.size()));
 
+    // Populate keyboard shortcuts in Keys tab
+    ui.keysViewer->setHtml(GlobalStaticSettings::m_hotKeyManager.toDisplayableText());
+
     dialog->setAttribute(Qt::WA_DeleteOnClose);
     dialog->setWindowModality(Qt::WindowModal);
     dialog->show();
