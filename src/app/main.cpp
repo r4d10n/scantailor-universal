@@ -38,10 +38,56 @@
 #include <QStringList>
 #include <QTranslator>
 #include "settings/globalstaticsettings.h"
+#include "PerformanceStats.h"
+#include "SIMDUtils.h"
+#include "gpu/CUDAUtils.h"
 #include <Qt>
 #include <string.h>
+#include <iostream>
+#include <iomanip>
 
 #include "CommandLine.h"
+
+static void printSystemInfo()
+{
+    std::cout << "\n";
+    std::cout << "========================================" << std::endl;
+    std::cout << "  Scan Tailor Universal - System Info  " << std::endl;
+    std::cout << "========================================" << std::endl;
+
+    // SIMD capabilities
+    std::cout << "SIMD: ";
+#if SIMD_AVX2_AVAILABLE
+    std::cout << "AVX2 ";
+#endif
+#if SIMD_SSE4_1_AVAILABLE
+    std::cout << "SSE4.1 ";
+#endif
+#if SIMD_SSE2_AVAILABLE
+    std::cout << "SSE2 ";
+#endif
+#if SIMD_NEON_AVAILABLE
+    std::cout << "NEON ";
+#endif
+#if !SIMD_SSE2_AVAILABLE && !SIMD_AVX2_AVAILABLE && !SIMD_NEON_AVAILABLE
+    std::cout << "None (scalar fallback)";
+#endif
+    std::cout << std::endl;
+
+    // CUDA/GPU info
+    using namespace imageproc::gpu;
+    if (isCUDAAvailable()) {
+        CUDADeviceInfo info = getCUDADeviceInfo();
+        std::cout << "GPU: " << info.deviceName << std::endl;
+        std::cout << "  Compute: " << info.major << "." << info.minor << std::endl;
+        std::cout << "  Memory: " << (info.totalMemory / (1024*1024)) << " MB" << std::endl;
+        std::cout << "  SMs: " << info.multiprocessorCount << std::endl;
+    } else {
+        std::cout << "GPU: Not available (CPU processing)" << std::endl;
+    }
+
+    std::cout << "========================================\n" << std::endl;
+}
 
 int main(int argc, char** argv)
 {
@@ -76,6 +122,12 @@ int main(int argc, char** argv)
 
     QSettings settings;
     GlobalStaticSettings::applyAppStyle(settings);
+
+    // Print system info (GPU/SIMD capabilities) at startup
+    printSystemInfo();
+
+    // Enable performance stats collection
+    PerformanceStats::instance().setEnabled(true);
 
     PngMetadataLoader::registerMyself();
     TiffMetadataLoader::registerMyself();

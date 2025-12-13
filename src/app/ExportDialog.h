@@ -84,6 +84,8 @@ private Q_SLOTS:
 
     void on_btnResetToDefault_clicked();
 
+    void onExportPdfToggled(bool checked);
+
 private:
     void saveExportMode(ExportMode val, bool on);
     void displayExportMode(ExportModes mode);

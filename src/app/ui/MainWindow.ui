@@ -68,6 +68,8 @@
     <addaction name="actionRelinking"/>
     <addaction name="actionExport"/>
     <addaction name="separator"/>
+    <addaction name="actionGenerateCLICommand"/>
+    <addaction name="separator"/>
     <addaction name="actionSettings"/>
    </widget>
    <widget class="QMenu" name="menuFile">
@@ -774,6 +776,14 @@
   <action name="actionExport">
    <property name="text">
     <string>&amp;Export...</string>
+   </property>
+  </action>
+  <action name="actionGenerateCLICommand">
+   <property name="text">
+    <string>&amp;Generate CLI Command...</string>
+   </property>
+   <property name="toolTip">
+    <string>Generate command line equivalent for current settings</string>
    </property>
   </action>
   <action name="actionAbout_Qt">

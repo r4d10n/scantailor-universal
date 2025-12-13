@@ -29,6 +29,7 @@
 #include "EditableEllipse.h"
 #include <QPointF>
 #include <QDateTime>
+#include <vector>
 #include <QCoreApplication>
 
 class ZoneInteractionContext;
@@ -41,7 +42,9 @@ public:
     enum ZoneCreationMode {
         None,
         Rectangle,
-        Ellipse
+        Ellipse,
+        Polygon,
+        Lasso
     };
 
     ZoneCreationInteraction(
@@ -99,6 +102,10 @@ private:
     QPointF m_nextVertexImagePos_mid1;
     QPointF m_nextVertexImagePos_mid2;
 //end of modified by monday2000
+
+    // Lasso tool support
+    std::vector<QPointF> m_lassoPoints;
+    bool m_lassoDrawing;
 };
 
 #endif

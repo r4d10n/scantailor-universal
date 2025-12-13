@@ -199,6 +199,18 @@ void QHotKeys::resetToDefaults()
     data.append(HotKeyInfo(ZoneDelete, QObject::tr("Delete zone"), KeysAndModifiers, HotKey, list));
     data.append(HotKeyInfo(ZoneCancel, QObject::tr("Cancel move or creation"), KeysAndModifiers, HotKey,
                            HotKeySequence(Qt::NoModifier, Qt::Key_Escape)));
+    data.append(HotKeyInfo(ZonePolygon, QObject::tr("Create polygon zone"), ModifierAllowed, MouseHold,
+                           HotKeySequence(Qt::AltModifier, Qt::Key_unknown)));
+    data.append(HotKeyInfo(ZoneLasso, QObject::tr("Create lasso zone (freehand)"), ModifierAllowed, MouseHold,
+                           HotKeySequence(Qt::AltModifier | Qt::ShiftModifier, Qt::Key_unknown)));
+    data.append(HotKeyInfo(ZoneQuickRectangle, QObject::tr("Quick rectangle tool"), KeysAndModifiers, HotKey,
+                           HotKeySequence(Qt::NoModifier, Qt::Key_R)));
+    data.append(HotKeyInfo(ZoneQuickEllipse, QObject::tr("Quick ellipse tool"), KeysAndModifiers, HotKey,
+                           HotKeySequence(Qt::NoModifier, Qt::Key_E)));
+    data.append(HotKeyInfo(ZoneQuickPolygon, QObject::tr("Quick polygon tool"), KeysAndModifiers, HotKey,
+                           HotKeySequence(Qt::NoModifier, Qt::Key_P)));
+    data.append(HotKeyInfo(ZoneQuickLasso, QObject::tr("Quick lasso tool"), KeysAndModifiers, HotKey,
+                           HotKeySequence(Qt::NoModifier, Qt::Key_L)));
 
     HotKeyGroup group_zones("zones_editor", QObject::tr("Zones edit"));
     group_zones.setHotKeys(data);

@@ -75,6 +75,10 @@ public:
     {
         return contains("verbose");
     }
+    bool isPrintStats() const
+    {
+        return contains("print-stats");
+    }
     bool isError() const
     {
         return m_error;

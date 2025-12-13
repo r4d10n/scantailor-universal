@@ -551,8 +551,13 @@ void SettingsDialog::on_stackedWidget_currentChanged(int /*arg1*/)
         const QString defaultStyleName = m_settings.value(_key_app_style, _key_app_style_def).toString();
         const QStringList styleNames = QStyleFactory::keys();
         QStringList styleNames_l;
+        // Filter list to exclude deprecated/unwanted themes
+        const QStringList excludedStyles = {"bb10dark", "bb10light", "bb10bright", "gtk", "gtk+"};
         for (const QString& s: styleNames) {
-            styleNames_l.append(s.toLower());
+            QString styleLower = s.toLower();
+            if (!excludedStyles.contains(styleLower)) {
+                styleNames_l.append(styleLower);
+            }
         }
         ui.cbStyle->addItems(styleNames_l);
         int idx = styleNames_l.indexOf(defaultStyleName);

@@ -73,6 +73,7 @@
 
 #include "ConsoleBatch.h"
 #include "CommandLine.h"
+#include "PerformanceStats.h"
 
 ConsoleBatch::ConsoleBatch(std::vector<ImageFileInfo> const& images, QString const& output_directory, Qt::LayoutDirection const layout)
     :   batch(true), debug(true),
@@ -190,6 +191,12 @@ ConsoleBatch::process()
 {
     CommandLine const& cli = CommandLine::get();
 
+    // Enable performance statistics if requested
+    if (cli.isPrintStats()) {
+        PerformanceStats::instance().setEnabled(true);
+        PerformanceStats::instance().reset();
+    }
+
     // get first filter id
     int startFilterIdx = m_ptrStages->fixOrientationFilterIdx();
     if (cli.hasStartFilterIdx()) {
@@ -225,6 +232,11 @@ ConsoleBatch::process()
             }
             BackgroundTaskPtr bgTask = createCompositeTask(page, j);
             (*bgTask)();
+
+            // Track page count for statistics (only on output filter)
+            if (cli.isPrintStats() && j == endFilterIdx) {
+                PerformanceStats::instance().incrementPageCount();
+            }
         }
     }
 
@@ -237,6 +249,11 @@ ConsoleBatch::process()
     // update statistics for executed filters
     for (int j = 0; j <= endFilterIdx; j++) {
         m_ptrStages->filterAt(j)->updateStatistics();
+    }
+
+    // Print performance statistics if requested
+    if (cli.isPrintStats()) {
+        PerformanceStats::instance().printReport();
     }
 }
 

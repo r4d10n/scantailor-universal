@@ -19,6 +19,7 @@
 #include "BinaryImage.h"
 #include "ByteOrder.h"
 #include "BitOps.h"
+#include "SIMDUtils.h"
 #include <QAtomicInt>
 #include <QImage>
 #include <QRect>
@@ -276,19 +277,33 @@ BinaryImage::invert()
 
     assert(m_pData);
     if (!m_pData->isShared()) {
-        // In-place operation
-        uint32_t* data = this->data();
-        for (size_t i = 0; i < num_words; ++i, ++data) {
-            *data = ~*data;
-        }
+        // In-place SIMD-optimized operation
+        simd::invertWordsSIMD(this->data(), num_words);
     } else {
         SharedData* new_data = SharedData::create(num_words);
 
         uint32_t const* src_data = m_pData->data();
         uint32_t* dst_data = new_data->data();
+
+#if SIMD_SSE2_AVAILABLE
+        const size_t simdWords = 4;
+        size_t i = 0;
+        __m128i allOnes = _mm_set1_epi32(-1);
+
+        for (; i + simdWords <= num_words; i += simdWords) {
+            __m128i v = simd::load128u(src_data + i);
+            v = simd::xor128(v, allOnes);
+            simd::store128u(dst_data + i, v);
+        }
+
+        for (; i < num_words; ++i) {
+            dst_data[i] = ~src_data[i];
+        }
+#else
         for (size_t i = 0; i < num_words; ++i, ++src_data, ++dst_data) {
             *dst_data = ~*src_data;
         }
+#endif
 
         m_pData->unref();
         m_pData = new_data;
@@ -307,9 +322,26 @@ BinaryImage::inverted() const
 
     uint32_t const* src_data = m_pData->data();
     uint32_t* dst_data = new_data->data();
+
+#if SIMD_SSE2_AVAILABLE
+    const size_t simdWords = 4;
+    size_t i = 0;
+    __m128i allOnes = _mm_set1_epi32(-1);
+
+    for (; i + simdWords <= num_words; i += simdWords) {
+        __m128i v = simd::load128u(src_data + i);
+        v = simd::xor128(v, allOnes);
+        simd::store128u(dst_data + i, v);
+    }
+
+    for (; i < num_words; ++i) {
+        dst_data[i] = ~src_data[i];
+    }
+#else
     for (size_t i = 0; i < num_words; ++i, ++src_data, ++dst_data) {
         *dst_data = ~*src_data;
     }
+#endif
 
     return BinaryImage(m_width, m_height, new_data);
 }
